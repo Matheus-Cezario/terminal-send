@@ -57,9 +57,10 @@ public class EmailVerificationService {
 
     /**
      * Checks {@code code} against the latest issued code and marks the user verified.
-     * The caller's transaction must not roll back on {@link ApiException}, so failed attempts are counted.
+     * Neither this method nor the caller's transaction may roll back on {@link ApiException}, otherwise the
+     * failed-attempt counter is lost (a participating method would mark the shared transaction rollback-only).
      */
-    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.MANDATORY, noRollbackFor = ApiException.class)
     public void verify(User user, String code) {
         Instant now = clock.instant();
         EmailVerification latest = verifications.findFirstByUserIdOrderByCreatedAtDesc(user.getId())
