@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: terminal-send-server
+  datasource:
+    url: ${TS_DB_URL:jdbc:postgresql://localhost:5432/terminal_send}
+    username: ${TS_DB_USER:terminal_send}
+    password: ${TS_DB_PASSWORD:terminal_send}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    locations: classpath:db/migration
+  mail:
+    host: ${TS_MAIL_HOST:localhost}
+    port: ${TS_MAIL_PORT:1025}
+    username: ${TS_MAIL_USER:}
+    password: ${TS_MAIL_PASSWORD:}
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: never
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+terminal-send:
+  jwt:
+    secret: ${TS_JWT_SECRET:dev-only-secret-change-me-0123456789abcdef}
+    access-token-ttl: 15m
+    refresh-token-ttl: 30d
+  verification:
+    code-ttl: 15m
+    max-attempts: 5
+    resend-cooldown: 60s
+  messaging:
+    pending-ttl: 30d
+    max-ciphertext-bytes: 65536
+    max-messages-per-second: 20
+  mail:
+    from: ${TS_MAIL_FROM:terminal-send <no-reply@terminal-send.local>}
