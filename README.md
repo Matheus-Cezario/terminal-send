@@ -35,4 +35,13 @@ Para rodar os testes, use `./gradlew build`. Os testes do servidor sobem o Postg
 
 ## Status
 
-🚧 Em desenvolvimento — ver o plano de milestones na tech-spec (§10).
+🚧 Em desenvolvimento — plano de milestones na tech-spec (§10).
+
+- [x] M0 — Tech-spec e arquitetura
+- [x] M1 — Esqueleto multi-módulo, docker-compose, schema Flyway, CI
+- [x] M2 — Auth: cadastro, verificação de email, login, refresh e logout
+- [ ] M3 — Conexões (convite / aceite / remoção)
+- [ ] M4 — Criptografia E2E no cliente + publicação de chave
+- [ ] M5 — Relay WebSocket + store-and-forward
+- [ ] M6 — Cliente TUI completo
+- [ ] M7 — Hardening e empacotamento
