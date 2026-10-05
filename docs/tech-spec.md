@@ -79,6 +79,11 @@ o servidor guarda uma mensagem apenas enquanto ela não foi entregue.
 3. `accept` / `reject` / `remove`. `reject` é silencioso para quem convidou, que continua vendo o convite como `PENDING`.
 4. Só existe uma conexão por par de usuários (unicidade em `(least(a,b), greatest(a,b))`).
 5. A chave pública de um usuário só é servida para quem tem conexão `ACCEPTED` com ele.
+6. Convite recíproco (B convida A enquanto o convite de A para B está pendente) vale como aceite.
+7. Quem recusou pode convidar de volta depois: a conexão é reaberta com os papéis invertidos.
+8. **Limite conhecido da anti-enumeração:** o `202` não revela nada, mas a lista de convites enviados só mostra
+   `PENDING` se o destinatário existir. Para fechar isso de vez, seria preciso guardar convites "fantasma" para
+   alvos inexistentes (que poderiam ser entregues se a pessoa se cadastrar depois). Isso fica para avaliar depois da v1.
 
 ### RF5 — Mensagens
 1. Só é possível enviar mensagens para conexões `ACCEPTED`.
