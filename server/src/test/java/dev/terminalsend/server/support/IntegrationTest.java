@@ -3,6 +3,9 @@ package dev.terminalsend.server.support;
 import com.icegreen.greenmail.configuration.GreenMailConfiguration;
 import com.icegreen.greenmail.junit5.GreenMailExtension;
 import com.icegreen.greenmail.util.ServerSetupTest;
+import dev.terminalsend.protocol.rest.AuthDtos.RegisterRequest;
+import dev.terminalsend.protocol.rest.AuthDtos.TokenPair;
+import dev.terminalsend.protocol.rest.AuthDtos.VerifyRequest;
 import dev.terminalsend.server.TestcontainersConfig;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -25,12 +28,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /** Full application against Testcontainers Postgres and an in-process GreenMail SMTP server. */
 @SpringBootTest(properties = {"spring.mail.host=localhost", "spring.mail.port=3025"})
 @AutoConfigureMockMvc
 @Import({TestcontainersConfig.class, IntegrationTest.ClockOverride.class})
 public abstract class IntegrationTest {
+
+    protected static final String PASSWORD = "correct horse battery";
 
     private static final Pattern CODE = Pattern.compile("(\\d{6})$");
 
@@ -83,6 +89,18 @@ public abstract class IntegrationTest {
         } catch (MessagingException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    protected String register() throws Exception {
+        String email = uniqueEmail();
+        postJson("/api/v1/auth/register", new RegisterRequest(email, PASSWORD)).andExpect(status().isCreated());
+        return email;
+    }
+
+    protected TokenPair registerAndVerify() throws Exception {
+        String email = register();
+        return read(postJson("/api/v1/auth/verify", new VerifyRequest(email, PASSWORD, latestCodeFor(email)))
+                .andExpect(status().isOk()), TokenPair.class);
     }
 
     protected int emailsSentTo(String email) {

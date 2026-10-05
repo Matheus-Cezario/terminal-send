@@ -20,8 +20,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class AuthFlowTest extends IntegrationTest {
 
-    private static final String PASSWORD = "correct horse battery";
-
     @Test
     void registerVerifyLoginAndFetchMe() throws Exception {
         String email = uniqueEmail();
@@ -176,18 +174,6 @@ class AuthFlowTest extends IntegrationTest {
                 .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"));
         postJson("/api/v1/auth/register", new RegisterRequest("not-an-email", PASSWORD))
                 .andExpect(status().isBadRequest());
-    }
-
-    private String register() throws Exception {
-        String email = uniqueEmail();
-        postJson("/api/v1/auth/register", new RegisterRequest(email, PASSWORD)).andExpect(status().isCreated());
-        return email;
-    }
-
-    private TokenPair registerAndVerify() throws Exception {
-        String email = register();
-        return read(postJson("/api/v1/auth/verify", new VerifyRequest(email, PASSWORD, latestCodeFor(email)))
-                .andExpect(status().isOk()), TokenPair.class);
     }
 
     private static String wrong(String code) {
