@@ -4,6 +4,7 @@ lanterna = "3.1.5"
 sqlite-jdbc = "3.53.4.0"
 shadow = "9.6.1"
 bouncycastle = "1.86"
+greenmail = "2.1.14"
 
 [libraries]
 spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
@@ -32,6 +33,7 @@ spring-boot-starter-webmvc-test = { module = "org.springframework.boot:spring-bo
 spring-boot-testcontainers = { module = "org.springframework.boot:spring-boot-testcontainers" }
 testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql" }
 testcontainers-junit = { module = "org.testcontainers:testcontainers-junit-jupiter" }
+greenmail = { module = "com.icegreen:greenmail-junit5", version.ref = "greenmail" }
 
 [plugins]
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }

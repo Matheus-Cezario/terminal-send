@@ -9,7 +9,8 @@ import java.time.ZoneOffset;
 /** Test clock that only moves when told to. */
 public class MutableClock extends Clock {
 
-    private volatile Instant now = Instant.parse("2026-10-05T12:00:00Z");
+    /** Starts at real time: JWTs it stamps are still validated against the system clock. */
+    private volatile Instant now = Instant.now();
 
     public void advance(Duration duration) {
         now = now.plus(duration);
