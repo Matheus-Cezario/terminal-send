@@ -70,7 +70,7 @@ o servidor guarda uma mensagem apenas enquanto ela não foi entregue.
 ### RF3 — Identidade e chaves
 1. No primeiro login em um dispositivo, o cliente gera um par **X25519** e publica a chave pública (`PUT /me/key`).
 2. A chave privada fica em `~/.terminal-send/<handle>/identity.key`, cifrada com uma chave derivada da senha (PBKDF2-HMAC-SHA256, 600k iterações, AES-GCM), com permissão `600`.
-3. Trocar de chave (login em outro dispositivo) descarta os envelopes pendentes destinados à chave antiga e emite `key.changed` para os contatos.
+3. Trocar de chave (login em outro dispositivo) descarta os envelopes pendentes destinados à chave antiga e emite `key.changed` para os contatos. Republicar a mesma chave não tem efeito.
 4. O cliente aplica **TOFU**: guarda o fingerprint (SHA-256 da chave pública, 8 grupos hex) de cada contato e avisa se ele mudar.
 
 ### RF4 — Conexões
@@ -182,10 +182,14 @@ busca a chave nova, avisa o usuário (TOFU) e só recifra depois da confirmaçã
 ### 7.2 Chave de sessão por par
 ```
 shared   = X25519(myPriv, peerPub)
-salt     = SHA-256( min(idA,idB) || max(idA,idB) )
+salt     = SHA-256( min(idA,idB) || max(idA,idB) )   -- UUIDs em 16 bytes big-endian, ordem unsigned
 key      = HKDF(shared, salt, info = "terminal-send/v1/msg", L = 32)
 ```
 A chave fica em cache em memória por contato e é invalidada quando a chave do contato muda.
+
+As chaves trafegam e são armazenadas no formato **raw da RFC 7748** (32 bytes little-endian). O fingerprint
+(`protocol/KeyFingerprints`) é o SHA-256 em hex desses 32 bytes, calculado igual no cliente e no servidor.
+Um peer com chave de ordem baixa (segredo compartilhado todo zero) é rejeitado.
 
 ### 7.3 Envelope
 ```
