@@ -1,0 +1,19 @@
+[versions]
+spring-boot = "4.1.1"
+lanterna = "3.1.5"
+sqlite-jdbc = "3.53.4.0"
+shadow = "9.6.1"
+
+[libraries]
+spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
+jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations" }
+jackson-databind = { module = "tools.jackson.core:jackson-databind" }
+lanterna = { module = "com.googlecode.lanterna:lanterna", version.ref = "lanterna" }
+sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-jdbc" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
+junit-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+assertj = { module = "org.assertj:assertj-core" }
+
+[plugins]
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
