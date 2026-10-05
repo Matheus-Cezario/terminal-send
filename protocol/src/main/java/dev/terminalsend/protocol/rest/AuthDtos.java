@@ -15,7 +15,8 @@ public final class AuthDtos {
     public record RegisterResponse(UUID userId, String handle) {
     }
 
-    public record VerifyRequest(String email, String code) {
+    /** Password is required so only whoever set the current password can claim the verified account. */
+    public record VerifyRequest(String email, String password, String code) {
     }
 
     public record ResendCodeRequest(String email) {

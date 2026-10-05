@@ -155,7 +155,7 @@ sequenceDiagram
     S->>S: hash Argon2id, gera handle + código
     S->>M: email com código (6 dígitos)
     S-->>C: 201 {userId, handle}
-    C->>S: POST /auth/verify {email, código}
+    C->>S: POST /auth/verify {email, senha, código}
     S-->>C: 200 TokenPair
     C->>C: gera par X25519, cifra a privada com a senha
     C->>S: PUT /me/key {publicKey}

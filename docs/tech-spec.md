@@ -54,16 +54,17 @@ o servidor guarda uma mensagem apenas enquanto ela não foi entregue.
 ## 3. Requisitos funcionais
 
 ### RF1 — Cadastro e verificação de email
-1. `register(email, senha)` cria o usuário com `email_verified_at = null` e envia o código.
+1. `register(email, senha)` cria o usuário com `email_verified_at = null` e envia o código. Se o email já existe **não verificado**, a senha é sobrescrita e um novo código é emitido; se já existe verificado, a resposta é `409 EMAIL_ALREADY_REGISTERED`.
 2. Senha: mínimo de 10 caracteres; hash com **Argon2id** (Spring Security `Argon2PasswordEncoder`).
-3. O email é normalizado (trim + lowercase) e validado (formato RFC 5322 simplificado via Bean Validation).
+3. O email é normalizado (trim + lowercase) e validado (formato simplificado em `protocol/Identifiers`, compartilhado com o cliente).
 4. O código tem 6 dígitos (`SecureRandom`), e só o **hash** dele é persistido. Expira em 15 min, aceita 5 tentativas e o reenvio tem cooldown de 60 s.
-5. Login de conta não verificada → `403 EMAIL_NOT_VERIFIED`, e o cliente cai na tela de código.
-6. Contas não verificadas há mais de 7 dias são removidas por um job agendado.
+5. `verify(email, senha, código)` exige a senha atual, para que só quem definiu a última senha consiga reivindicar a conta (evita que alguém cadastre o email de outra pessoa com uma senha própria).
+6. Login de conta não verificada → `403 EMAIL_NOT_VERIFIED`, e o cliente cai na tela de código.
+7. Contas não verificadas há mais de 7 dias são removidas por um job agendado.
 
 ### RF2 — Login e sessão
 1. `login(email, senha)` → `{accessToken, refreshToken, user}`.
-2. O refresh é rotativo: cada uso invalida o token anterior. Se um token revogado for reutilizado, todos os tokens do usuário são revogados.
+2. O refresh é rotativo: cada uso invalida o token anterior. Se um token revogado for reutilizado, toda a família daquele login é revogada (detecção de vazamento).
 3. Após 5 falhas de login em 15 min, aquele email fica bloqueado por 15 min.
 
 ### RF3 — Identidade e chaves
@@ -113,7 +114,7 @@ Os erros seguem o formato **RFC 9457** (`application/problem+json`), com `code` 
 | Método | Rota | Corpo | Resposta |
 |--------|------|-------|----------|
 | POST | `/auth/register` | `{email, password}` | `201` `{userId, handle}` |
-| POST | `/auth/verify` | `{email, code}` | `200` `TokenPair` |
+| POST | `/auth/verify` | `{email, password, code}` | `200` `TokenPair` |
 | POST | `/auth/verify/resend` | `{email}` | `202` |
 | POST | `/auth/login` | `{email, password}` | `200` `TokenPair` · `403 EMAIL_NOT_VERIFIED` |
 | POST | `/auth/refresh` | `{refreshToken}` | `200` `TokenPair` |
