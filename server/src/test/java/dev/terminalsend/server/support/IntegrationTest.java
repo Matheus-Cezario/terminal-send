@@ -103,6 +103,10 @@ public abstract class IntegrationTest {
                 .andExpect(status().isOk()), TokenPair.class);
     }
 
+    protected static String bearer(TokenPair tokens) {
+        return "Bearer " + tokens.accessToken();
+    }
+
     protected int emailsSentTo(String email) {
         return greenMail.getReceivedMessagesForDomain(email).length;
     }

@@ -86,6 +86,16 @@ public class User {
         return publicKeyFingerprint;
     }
 
+    public boolean hasPublicKey() {
+        return publicKey != null;
+    }
+
+    public void replacePublicKey(byte[] rawKey, String fingerprint, Instant at) {
+        this.publicKey = rawKey.clone();
+        this.publicKeyFingerprint = fingerprint;
+        this.keyUpdatedAt = at;
+    }
+
     public Instant getKeyUpdatedAt() {
         return keyUpdatedAt;
     }

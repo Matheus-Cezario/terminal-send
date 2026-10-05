@@ -195,8 +195,4 @@ class ConnectionFlowTest extends IntegrationTest {
         assertThat(views).hasSize(1);
         return views.getFirst();
     }
-
-    private static String bearer(TokenPair tokens) {
-        return "Bearer " + tokens.accessToken();
-    }
 }
