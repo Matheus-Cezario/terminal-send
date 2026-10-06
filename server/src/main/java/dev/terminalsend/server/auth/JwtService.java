@@ -16,7 +16,7 @@ import java.time.Instant;
 @Service
 public class JwtService {
 
-    static final String ISSUER = "terminal-send";
+    public static final String ISSUER = "terminal-send";
 
     private final JwtEncoder encoder;
     private final Duration ttl;
