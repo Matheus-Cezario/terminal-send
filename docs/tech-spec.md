@@ -111,7 +111,24 @@ o servidor guarda uma mensagem apenas enquanto ela não foi entregue.
 | Observabilidade | Spring Actuator (`/actuator/health`, métricas), logs JSON estruturados |
 | Testes | Unitários + integração com Testcontainers (Postgres) e GreenMail (SMTP) |
 
-## 5. API REST (`/api/v1`)
+### 4.1 Limites e operação (M7)
+
+| Item | Valor / comportamento |
+|------|-----------------------|
+| Requisições a `/auth/*` | 60 por IP a cada 10 min |
+| Cadastro + reenvio de código (enviam email) | 10 por IP por hora |
+| Login com senha errada | 5 por email a cada 15 min |
+| Convites | 50 por usuário por hora (contados antes de resolver o alvo) |
+| Mensagens no WebSocket | 20 por segundo por usuário |
+| JWT | HS256; assinatura, `exp` e `iss = terminal-send` são validados |
+| Limpeza (job horário) | contas não verificadas > 7 dias, códigos expirados > 1 dia, refresh tokens expirados, envelopes > 30 dias |
+| Perfil `prod` | segredos só por env (sem default); o servidor **não sobe** com segredo ausente, curto ou o de dev; SMTP com STARTTLS; logs JSON (ECS); `X-Forwarded-*` confiável atrás do proxy TLS |
+| Cliente | exige `https://` para servidores que não sejam localhost (`--insecure` para forçar) |
+| Imagem | `eclipse-temurin:21-jre-alpine`, usuário sem root, healthcheck em `/actuator/health` |
+
+Os limites ficam em memória (instância única) e são configuráveis em `terminal-send.rate-limits.*`.
+
+
 
 Todas as rotas, exceto `/auth/*`, exigem `Authorization: Bearer <accessToken>`.
 Os erros seguem o formato **RFC 9457** (`application/problem+json`), com `code` estável.

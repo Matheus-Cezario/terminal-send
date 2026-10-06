@@ -30,6 +30,27 @@ Para ver dois clientes conversando sem abrir dois terminais: `pip install pyte p
 
 Para rodar os testes, use `./gradlew build`. Os testes do servidor sobem o Postgres via Testcontainers.
 
+## Deploy
+
+O servidor roda como container com o perfil `prod`, atrás de um proxy que termina o TLS (Caddy, nginx, Traefik).
+
+```bash
+./gradlew :server:bootJar
+docker build -t terminal-send-server .
+docker run -p 8080:8080 \
+  -e TS_DB_URL=jdbc:postgresql://db:5432/terminal_send -e TS_DB_USER=... -e TS_DB_PASSWORD=... \
+  -e TS_JWT_SECRET="$(openssl rand -base64 48)" \
+  -e TS_MAIL_HOST=smtp.seuprovedor.com -e TS_MAIL_USER=... -e TS_MAIL_PASSWORD=... \
+  -e TS_MAIL_FROM="terminal-send <no-reply@seu-dominio>" \
+  terminal-send-server
+```
+
+O servidor se recusa a subir sem `TS_JWT_SECRET` ou com o segredo de dev. Para testar a stack inteira em
+containers localmente: `docker compose --profile full up -d --build`.
+
+Releases: ao criar uma tag `v*`, o GitHub Actions publica `terminal-send.jar` (cliente) e `server.jar` na
+release, e a imagem em `ghcr.io/<owner>/terminal-send-server`.
+
 ## Estrutura
 
 | Módulo | Conteúdo |
@@ -49,4 +70,4 @@ Para rodar os testes, use `./gradlew build`. Os testes do servidor sobem o Postg
 - [x] M4 — Criptografia E2E no cliente + publicação de chave
 - [x] M5 — Relay WebSocket + store-and-forward
 - [x] M6 — Cliente TUI completo
-- [ ] M7 — Hardening e empacotamento
+- [x] M7 — Hardening e empacotamento
