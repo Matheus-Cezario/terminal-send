@@ -1,5 +1,6 @@
 package dev.terminalsend.client.crypto;
 
+import dev.terminalsend.client.util.OwnerOnlyFiles;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -12,11 +13,8 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.SecureRandom;
@@ -72,7 +70,7 @@ public final class IdentityKeyFile {
         Base64.Encoder b64 = Base64.getEncoder();
         Stored stored = new Stored(VERSION, KDF, iterations, b64.encodeToString(salt), b64.encodeToString(nonce),
                 b64.encodeToString(ciphertext), b64.encodeToString(rawPublic));
-        writeOwnerOnly(file, JSON.writeValueAsBytes(stored));
+        OwnerOnlyFiles.write(file, JSON.writeValueAsBytes(stored));
     }
 
     /** @throws DecryptionException if the password is wrong or the file was tampered with */
@@ -120,30 +118,6 @@ public final class IdentityKeyFile {
     private static byte[] aad(byte[] rawPublic) {
         return ("terminal-send/identity/v1|" + Base64.getEncoder().encodeToString(rawPublic))
                 .getBytes(StandardCharsets.US_ASCII);
-    }
-
-    /** Writes via a temp file in the same directory and an atomic move, with 0600/0700 permissions on POSIX. */
-    static void writeOwnerOnly(Path file, byte[] content) throws IOException {
-        Path dir = file.toAbsolutePath().getParent();
-        boolean posix = FileSystems.getDefault().supportedFileAttributeViews().contains("posix");
-        if (!Files.isDirectory(dir)) {
-            if (posix) {
-                Files.createDirectories(dir, PosixFilePermissions.asFileAttribute(
-                        PosixFilePermissions.fromString("rwx------")));
-            } else {
-                Files.createDirectories(dir);
-            }
-        }
-        Path tmp = posix
-                ? Files.createTempFile(dir, ".identity", ".tmp",
-                        PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------")))
-                : Files.createTempFile(dir, ".identity", ".tmp");
-        try {
-            Files.write(tmp, content);
-            Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-        } finally {
-            Files.deleteIfExists(tmp);
-        }
     }
 
     private static byte[] random(int length) {
