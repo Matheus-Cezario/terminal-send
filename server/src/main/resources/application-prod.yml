@@ -1,0 +1,35 @@
+# Production: every secret must come from the environment (no defaults, so a missing one fails startup).
+spring:
+  datasource:
+    url: ${TS_DB_URL}
+    username: ${TS_DB_USER}
+    password: ${TS_DB_PASSWORD}
+  mail:
+    host: ${TS_MAIL_HOST}
+    port: ${TS_MAIL_PORT:587}
+    username: ${TS_MAIL_USER:}
+    password: ${TS_MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: ${TS_MAIL_AUTH:true}
+      mail.smtp.starttls.enable: ${TS_MAIL_STARTTLS:true}
+      mail.smtp.starttls.required: ${TS_MAIL_STARTTLS:true}
+
+server:
+  # Runs behind a TLS-terminating proxy: trust X-Forwarded-* for scheme and client IP (rate limits).
+  forward-headers-strategy: framework
+
+terminal-send:
+  jwt:
+    secret: ${TS_JWT_SECRET}
+  mail:
+    from: ${TS_MAIL_FROM}
+
+logging:
+  structured:
+    format:
+      console: ecs
+
+management:
+  endpoint:
+    health:
+      show-details: never

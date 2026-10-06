@@ -28,3 +28,11 @@ dependencies {
     // Relay tests exchange real E2E-encrypted envelopes using the client's crypto.
     testImplementation(project(":client"))
 }
+
+tasks.bootJar {
+    archiveFileName = "server.jar"
+}
+
+tasks.jar {
+    enabled = false
+}
