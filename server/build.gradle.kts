@@ -25,4 +25,6 @@ dependencies {
     testImplementation(libs.testcontainers.postgresql)
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.greenmail)
+    // Relay tests exchange real E2E-encrypted envelopes using the client's crypto.
+    testImplementation(project(":client"))
 }

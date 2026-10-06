@@ -31,7 +31,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /** Full application against Testcontainers Postgres and an in-process GreenMail SMTP server. */
-@SpringBootTest(properties = {"spring.mail.host=localhost", "spring.mail.port=3025"})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = {"spring.mail.host=localhost", "spring.mail.port=3025"})
 @AutoConfigureMockMvc
 @Import({TestcontainersConfig.class, IntegrationTest.ClockOverride.class})
 public abstract class IntegrationTest {
