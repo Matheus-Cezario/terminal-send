@@ -140,7 +140,8 @@ Os erros seguem o formato **RFC 9457** (`application/problem+json`), com `code` 
 ## 6. Protocolo WebSocket (`/ws`)
 
 - Handshake com header `Authorization: Bearer <accessToken>`; token inválido → `401` no upgrade.
-- Frames de texto em JSON, sempre com `type`. Ping/pong nativo a cada 30 s.
+- Frames de texto em JSON, sempre com `type`. O **cliente** envia ping nativo a cada 30 s (o servidor só responde com pong).
+- Frame máximo de 128 KiB (64 KiB de ciphertext em Base64 + JSON). Acima disso o servidor fecha com `1009`.
 - Uma sessão por usuário: uma nova conexão fecha a anterior com o código `4001 SESSION_REPLACED`.
 - Quando o token expira, o servidor fecha com `4401` e o cliente faz refresh e reconecta.
 
@@ -168,6 +169,13 @@ Os erros seguem o formato **RFC 9457** (`application/problem+json`), com `code` 
 ```
 
 Ao conectar, o servidor envia todos os `message.deliver` pendentes, em ordem de `created_at`.
+
+Detalhes do relay:
+- O envelope é **persistido antes** do `message.accepted`, mesmo com o destinatário online.
+- Reenviar o mesmo `id` (retry do outbox) é idempotente e devolve `message.accepted` de novo.
+- O `message.ack` só apaga envelopes cujo destinatário é quem confirma.
+- Um job horário remove envelopes com mais de 30 dias.
+- **Limitação v1:** o `message.delivered` só chega se o remetente estiver online no momento do ACK; o recibo não é enfileirado.
 
 `KEY_MISMATCH`: o `recipientKeyFp` não confere com a chave atual do destinatário. O cliente
 busca a chave nova, avisa o usuário (TOFU) e só recifra depois da confirmação.
