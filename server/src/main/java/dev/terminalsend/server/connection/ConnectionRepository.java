@@ -19,6 +19,14 @@ public interface ConnectionRepository extends JpaRepository<Connection, UUID> {
     @Query("select c from Connection c where c.requesterId = :userId or c.addresseeId = :userId order by c.createdAt")
     List<Connection> findAllInvolving(UUID userId);
 
+    @Query("""
+            select case when c.requesterId = :userId then c.addresseeId else c.requesterId end
+            from Connection c
+            where (c.requesterId = :userId or c.addresseeId = :userId)
+              and c.status = dev.terminalsend.protocol.rest.ConnectionDtos.Status.ACCEPTED
+            """)
+    List<UUID> findAcceptedPeerIds(UUID userId);
+
     default boolean areConnected(UUID a, UUID b) {
         return findBetween(a, b).filter(c -> c.getStatus() == Status.ACCEPTED).isPresent();
     }

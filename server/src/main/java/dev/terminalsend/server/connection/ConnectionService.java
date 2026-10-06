@@ -15,6 +15,7 @@ import dev.terminalsend.server.user.UserRepository;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
@@ -89,6 +90,15 @@ public class ConnectionService {
         Map<UUID, User> peers = users.findAllById(visible.stream().map(c -> c.peerOf(me)).toList()).stream()
                 .collect(Collectors.toMap(User::getId, Function.identity()));
         return visible.stream().map(c -> view(c, me, peers.get(c.peerOf(me)))).toList();
+    }
+
+    /** Fresh view of a connection from {@code me}'s side; runs in its own transaction for after-commit callers. */
+    @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+    public Optional<ConnectionView> viewFor(UUID me, UUID connectionId) {
+        return connections.findById(connectionId)
+                .filter(c -> c.getRequesterId().equals(me) || c.getAddresseeId().equals(me))
+                .filter(c -> c.isVisibleTo(me))
+                .flatMap(c -> users.findById(c.peerOf(me)).map(peer -> view(c, me, peer)));
     }
 
     @Transactional
