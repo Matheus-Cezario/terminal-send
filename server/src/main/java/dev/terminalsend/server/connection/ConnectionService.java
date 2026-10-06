@@ -7,6 +7,8 @@ import dev.terminalsend.protocol.rest.ConnectionDtos.PeerView;
 import dev.terminalsend.protocol.rest.ConnectionDtos.Status;
 import dev.terminalsend.protocol.rest.ErrorCode;
 import dev.terminalsend.server.common.ApiException;
+import dev.terminalsend.server.common.FixedWindowLimiter;
+import dev.terminalsend.server.config.TerminalSendProperties;
 import dev.terminalsend.server.connection.ConnectionEvents.ConnectionAccepted;
 import dev.terminalsend.server.connection.ConnectionEvents.ConnectionRemoved;
 import dev.terminalsend.server.connection.ConnectionEvents.ConnectionRequested;
@@ -33,13 +35,16 @@ public class ConnectionService {
     private final UserRepository users;
     private final ApplicationEventPublisher events;
     private final Clock clock;
+    private final FixedWindowLimiter inviteLimiter;
 
     public ConnectionService(ConnectionRepository connections, UserRepository users,
-                             ApplicationEventPublisher events, Clock clock) {
+                             ApplicationEventPublisher events, TerminalSendProperties props, Clock clock) {
         this.connections = connections;
         this.users = users;
         this.events = events;
         this.clock = clock;
+        TerminalSendProperties.Limit limit = props.rateLimits().invitesPerUser();
+        this.inviteLimiter = new FixedWindowLimiter(limit.max(), limit.window(), clock);
     }
 
     /**
@@ -48,6 +53,10 @@ public class ConnectionService {
      */
     @Transactional
     public void invite(UUID me, String target) {
+        // Counted before resolving the target, so probing for accounts costs the same as real invites.
+        if (!inviteLimiter.tryAcquire(me.toString())) {
+            throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, ErrorCode.RATE_LIMITED, "Too many invites; try later");
+        }
         Optional<User> peer = resolveTarget(target).filter(u -> !u.getId().equals(me));
         if (peer.isEmpty()) {
             return;

@@ -172,6 +172,17 @@ class ConnectionFlowTest extends IntegrationTest {
     }
 
     @Test
+    void invitesAreRateLimitedPerUserEvenForUnknownTargets() throws Exception {
+        for (int i = 0; i < 50; i++) {
+            invite(ana, uniqueEmail()).andExpect(status().isAccepted());
+        }
+
+        invite(ana, uniqueEmail()).andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.code").value("RATE_LIMITED"));
+        invite(bruno, ana.user().email()).andExpect(status().isAccepted());
+    }
+
+    @Test
     void requiresAuthentication() throws Exception {
         mvc.perform(get("/api/v1/connections")).andExpect(status().isUnauthorized());
     }

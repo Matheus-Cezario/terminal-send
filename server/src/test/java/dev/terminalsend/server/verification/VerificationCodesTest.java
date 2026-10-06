@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class VerificationCodesTest {
 
     private final VerificationCodes codes = new VerificationCodes(new TerminalSendProperties(
-            new TerminalSendProperties.Jwt("test-secret-test-secret-test-secret!", null, null), null, null, null));
+            new TerminalSendProperties.Jwt("test-secret-test-secret-test-secret!", null, null), null, null, null, null));
 
     @Test
     void codesAreSixDigits() {

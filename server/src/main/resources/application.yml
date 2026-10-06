@@ -46,3 +46,13 @@ terminal-send:
     max-messages-per-second: 20
   mail:
     from: ${TS_MAIL_FROM:terminal-send <no-reply@terminal-send.local>}
+  rate-limits:
+    auth-per-ip:
+      max: 60
+      window: 10m
+    emails-per-ip:
+      max: 10
+      window: 1h
+    invites-per-user:
+      max: 50
+      window: 1h

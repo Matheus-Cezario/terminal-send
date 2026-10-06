@@ -32,7 +32,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /** Full application against Testcontainers Postgres and an in-process GreenMail SMTP server. */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-        properties = {"spring.mail.host=localhost", "spring.mail.port=3025"})
+        properties = {"spring.mail.host=localhost", "spring.mail.port=3025",
+                // Every test registers users from 127.0.0.1; limits get their own focused tests.
+                "terminal-send.rate-limits.auth-per-ip.max=100000",
+                "terminal-send.rate-limits.emails-per-ip.max=100000"})
 @AutoConfigureMockMvc
 @Import({TestcontainersConfig.class, IntegrationTest.ClockOverride.class})
 public abstract class IntegrationTest {

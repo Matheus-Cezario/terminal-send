@@ -9,7 +9,8 @@ import java.time.Duration;
 
 @Validated
 @ConfigurationProperties(prefix = "terminal-send")
-public record TerminalSendProperties(Jwt jwt, Verification verification, Messaging messaging, Mail mail) {
+public record TerminalSendProperties(Jwt jwt, Verification verification, Messaging messaging, Mail mail,
+                                     RateLimits rateLimits) {
 
     /** {@code secret} must be at least 32 bytes for HS256. */
     public record Jwt(@NotBlank @Size(min = 32) String secret, Duration accessTokenTtl, Duration refreshTokenTtl) {
@@ -22,5 +23,12 @@ public record TerminalSendProperties(Jwt jwt, Verification verification, Messagi
     }
 
     public record Mail(@NotBlank String from) {
+    }
+
+    public record Limit(int max, Duration window) {
+    }
+
+    /** Abuse limits; see tech-spec §4. */
+    public record RateLimits(Limit authPerIp, Limit emailsPerIp, Limit invitesPerUser) {
     }
 }
