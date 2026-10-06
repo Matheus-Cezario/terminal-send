@@ -18,6 +18,14 @@ public record ClientConfig(Path home, URI serverUrl) {
     public static final URI DEFAULT_SERVER = URI.create("http://localhost:8080");
 
     public static ClientConfig load(Path home, String serverOverride) throws IOException {
+        return load(home, serverOverride, false);
+    }
+
+    /**
+     * Plain HTTP is only accepted for loopback addresses unless {@code allowInsecure}: messages are E2E encrypted,
+     * but the password and tokens are not.
+     */
+    public static ClientConfig load(Path home, String serverOverride, boolean allowInsecure) throws IOException {
         Properties props = new Properties();
         Path file = home.resolve("config.properties");
         if (Files.isRegularFile(file)) {
@@ -30,7 +38,16 @@ public record ClientConfig(Path home, URI serverUrl) {
         if (!"http".equals(serverUrl.getScheme()) && !"https".equals(serverUrl.getScheme())) {
             throw new IllegalArgumentException("serverUrl must be http(s): " + server);
         }
+        if ("http".equals(serverUrl.getScheme()) && !allowInsecure && !isLoopback(serverUrl.getHost())) {
+            throw new IllegalArgumentException("Use https:// para servidores remotos (ou --insecure, por sua conta): "
+                    + serverUrl);
+        }
         return new ClientConfig(home, serverUrl);
+    }
+
+    static boolean isLoopback(String host) {
+        return host != null && (host.equals("localhost") || host.equals("127.0.0.1") || host.equals("[::1]")
+                || host.equals("::1"));
     }
 
     public static Path defaultHome() {

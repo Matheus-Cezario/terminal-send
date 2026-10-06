@@ -37,8 +37,17 @@ class ClientConfigTest {
     void cliOverrideWinsOverFile() throws Exception {
         Files.writeString(home.resolve("config.properties"), "serverUrl=https://chat.example.com\n");
 
-        assertThat(ClientConfig.load(home, "http://10.0.0.5:9000").serverUrl())
-                .isEqualTo(URI.create("http://10.0.0.5:9000"));
+        assertThat(ClientConfig.load(home, "https://10.0.0.5:9000").serverUrl())
+                .isEqualTo(URI.create("https://10.0.0.5:9000"));
+    }
+
+    @Test
+    void plainHttpOnlyForLoopbackUnlessInsecure() throws Exception {
+        assertThat(ClientConfig.load(home, "http://127.0.0.1:8080").serverUrl().getHost()).isEqualTo("127.0.0.1");
+        assertThatThrownBy(() -> ClientConfig.load(home, "http://chat.example.com"))
+                .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("https://");
+        assertThat(ClientConfig.load(home, "http://chat.example.com", true).serverUrl())
+                .isEqualTo(URI.create("http://chat.example.com"));
     }
 
     @Test
