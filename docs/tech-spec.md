@@ -97,7 +97,7 @@ o servidor guarda uma mensagem apenas enquanto ela não foi entregue.
 ### RF6 — Histórico local
 1. O SQLite guarda contatos, mensagens (texto claro) e o outbox.
 2. O arquivo tem permissão `600`. A cifragem do banco local fica para v1.1 (ver §9).
-3. `/clear <contato>` apaga o histórico local da conversa.
+3. `/clear` apaga o histórico local da conversa selecionada.
 
 ## 4. Requisitos não funcionais
 
@@ -241,24 +241,37 @@ pending_messages(id uuid pk /* do cliente */, sender_id fk, recipient_id fk,
 ### 8.2 Cliente (SQLite)
 
 ```sql
-contacts(user_id text pk, email text, handle text, public_key blob, fingerprint text,
-         fingerprint_verified int, status text, updated_at text)
+contacts(user_id text pk, email text, handle text, connection_id text, status text, direction text,
+         fingerprint text          -- chave confiável (TOFU)
+         , pending_fingerprint text -- chave nova anunciada, aguardando /trust
+         , fingerprint_verified int)
+contact_keys(user_id text, fingerprint text, public_key blob, first_seen int,
+             pk (user_id, fingerprint))  -- todas as chaves já vistas, para abrir mensagens antigas
 messages(id text pk, contact_id text, direction text /* IN|OUT */, body text,
-         sent_at text, received_at text,
+         sent_at int, received_at int,          -- epoch ms
          state text /* QUEUED|SENT|DELIVERED|FAILED|RECEIVED */)
   index (contact_id, sent_at)
-outbox(message_id text pk, envelope_json text, attempts int, next_attempt_at text)
-kv(key text pk, value text)   -- cursor, preferências
+outbox(message_id text pk, envelope_json text, created_at int)   -- drenado em ordem de inserção
+kv(key text pk, value text)
 ```
 
 Os arquivos do cliente ficam em `~/.terminal-send/`:
 
 ```
-config.properties          # serverUrl, tema
+config.properties          # serverUrl
 <handle>/identity.key      # chave privada cifrada com a senha (600)
-<handle>/session.json      # refresh token (600)
 <handle>/history.db        # SQLite (600)
 ```
+
+A sessão (refresh token) **não** é persistida: a senha é necessária a cada abertura de qualquer forma,
+para destravar a `identity.key`. Por isso guardar o token não traria login automático e só aumentaria a
+superfície de ataque.
+
+### 8.3 Interface (Lanterna)
+
+- **Limitação conhecida:** o Lanterna 3.1 não desenha caracteres fora do BMP (por exemplo, a maioria dos
+  emojis), que aparecem como `??` na tela. A mensagem é cifrada, enviada e salva intacta; só a exibição é afetada.
+- A demo automatizada `scripts/tui-demo.py` dirige dois clientes reais por pseudo-terminal e imprime as telas.
 
 ## 9. Evolução futura
 

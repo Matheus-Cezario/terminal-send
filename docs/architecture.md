@@ -107,7 +107,6 @@ dev.terminalsend.client
 ├── net/                     # ApiClient (HttpClient), RealtimeClient (WebSocket + reconexão)
 ├── crypto/                  # IdentityKeys, PairKeyDeriver (HKDF), EnvelopeCipher, KeyFileStore
 ├── store/                   # LocalStore (SQLite/JDBC), migrations, Outbox
-└── event/                   # EventBus simples (eventos do WS → UI)
 ```
 
 ```mermaid
@@ -116,7 +115,7 @@ flowchart TB
     APP --> NET[net: REST + WS]
     APP --> CRY[crypto]
     APP --> ST[store: SQLite]
-    NET -- eventos --> BUS[event bus] --> APP
+    NET -- frames --> APP
     APP -- atualiza --> UI
 ```
 
@@ -125,8 +124,9 @@ flowchart TB
   e devolve atualizações para a UI via `gui.getGUIThread().invokeLater(...)`.
 - **Reconexão**: backoff exponencial com jitter (1 s → 30 s). Ao reconectar, o `Outbox` é
   drenado e o servidor reenvia os pendentes.
-- **Comandos** no campo de entrada: `/add <email|ts-id>`, `/invites`, `/accept <n>`,
-  `/reject <n>`, `/verify <contato>`, `/clear`, `/logout`, `/quit`.
+- **Comandos** no campo de entrada (`app/Commands`, testável sem UI): `/add <email|ts-id>`, `/invites`,
+  `/accept <n>`, `/reject <n>`, `/verify [ok]`, `/trust`, `/remove`, `/clear`, `/me`, `/logout`, `/quit`.
+- **Pacote `event/` não existe:** a UI implementa `app/ChatEvents` diretamente, o que se mostrou suficiente.
 
 ### Esboço da TUI
 

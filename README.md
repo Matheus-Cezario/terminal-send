@@ -23,6 +23,11 @@ docker compose up -d                       # Postgres + Mailpit (emails em http:
 java -jar client/build/libs/terminal-send.jar --server http://localhost:8080
 ```
 
+Na interface: crie a conta, digite o código que chegou no Mailpit e use `/add <email|ts-ID>` para convidar
+alguém. `Tab` alterna entre a lista de contatos e o campo de texto, e `/help` lista os comandos.
+
+Para ver dois clientes conversando sem abrir dois terminais: `pip install pyte pexpect && python3 scripts/tui-demo.py`.
+
 Para rodar os testes, use `./gradlew build`. Os testes do servidor sobem o Postgres via Testcontainers.
 
 ## Estrutura
@@ -43,5 +48,5 @@ Para rodar os testes, use `./gradlew build`. Os testes do servidor sobem o Postg
 - [x] M3 — Conexões (convite / aceite / remoção)
 - [x] M4 — Criptografia E2E no cliente + publicação de chave
 - [x] M5 — Relay WebSocket + store-and-forward
-- [ ] M6 — Cliente TUI completo
+- [x] M6 — Cliente TUI completo
 - [ ] M7 — Hardening e empacotamento
